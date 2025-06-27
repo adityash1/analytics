@@ -5,10 +5,12 @@ ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 include $(ROOT_DIR)/.env
 export
 
+.PHONY: server dashboard
+
 server:
 	@cd cmd/tracker && go build && ./tracker -ip 123.123.123.123
 
 dashboard:
-	@cd cmd/dashboard && \
+	@cd cmd/cli && \
 	go build -o localdash && \
-	./localdash -site 1 -start 20240907 -end 20240930
+	env $$(cat ../../.env | xargs) ./localdash -site 1 -start 20240625 -end 20240627

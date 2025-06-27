@@ -1,14 +1,12 @@
 package main
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"log/slog"
 	"math/rand"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"sync" // Import sync for identity simulation
@@ -199,7 +197,7 @@ func main() {
 	successCount := 0
 	errorCount := 0
 
-	for i := 0; i < *numEvents; i++ {
+	for i := range *numEvents {
 		event := generateEvent()
 
 		jsonData, err := json.Marshal(event)
@@ -209,28 +207,17 @@ func main() {
 			continue // Skip this event
 		}
 
-		encodedData := base64.StdEncoding.EncodeToString(jsonData)
-
-		// Construct URL with query parameter
-		target, err := url.Parse(*trackerURL)
-		if err != nil {
-			logger.Error("Invalid tracker URL provided", slog.String("url", *trackerURL), slog.Any("error", err))
-			os.Exit(1) // Fatal error if URL is bad
-		}
-		query := target.Query()
-		query.Set("data", encodedData)
-		target.RawQuery = query.Encode()
-
-		req, err := http.NewRequest("GET", target.String(), nil)
+		req, err := http.NewRequest("POST", *trackerURL, strings.NewReader(string(jsonData)))
 		if err != nil {
 			logger.Error("Failed to create HTTP request", slog.Any("error", err), slog.Int("eventIndex", i))
 			errorCount++
 			continue
 		}
+		req.Header.Set("Content-Type", "application/json")
 
 		resp, err := client.Do(req)
 		if err != nil {
-			logger.Error("Failed to send request to tracker", slog.Any("error", err), slog.Int("eventIndex", i), slog.String("url", target.String()))
+			logger.Error("Failed to send request to tracker", slog.Any("error", err), slog.Int("eventIndex", i), slog.String("url", *trackerURL))
 			errorCount++
 		} else {
 			logAttrs := []slog.Attr{

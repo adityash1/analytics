@@ -28,6 +28,8 @@ var (
 )
 
 func main() {
+	tracker.LoadConfig()
+	
 	flag.StringVar(&siteID, "site", "", "site id")
 	flag.Int64Var(&start, "start", 0, "start date as uint32")
 	flag.Int64Var(&end, "end", 0, "end date as uint32")
